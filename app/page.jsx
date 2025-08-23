@@ -5,8 +5,7 @@ import { Suspense, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { ArrowRight, Code, Zap, Globe, Cpu, Loader2, Search, TrendingUp, Users, BookOpen } from "lucide-react"
+import { ArrowRight, Code, Zap, Globe, Cpu, Loader2, Sparkles, Rocket, Brain } from "lucide-react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 
@@ -21,10 +20,20 @@ const Scene3D = dynamic(() => import("@/components/3d-scene"), {
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     setIsClient(true)
+
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        y: (e.clientY / window.innerHeight) * 2 - 1,
+      })
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [])
 
   const containerVariants = {
@@ -59,8 +68,7 @@ export default function HomePage() {
       image: "/futuristic-ai-coding-interface.png",
       tags: ["AI", "Web Development", "Future Tech"],
       readTime: "8 min read",
-      views: "2.4k",
-      featured: true,
+      gradient: "from-primary to-secondary",
     },
     {
       id: 2,
@@ -70,7 +78,7 @@ export default function HomePage() {
       image: "/nextjs-tech-background.png",
       tags: ["Next.js", "React", "JavaScript"],
       readTime: "6 min read",
-      views: "1.8k",
+      gradient: "from-secondary to-primary",
     },
     {
       id: 3,
@@ -80,14 +88,8 @@ export default function HomePage() {
       image: "/edge-computing-network.png",
       tags: ["Edge Computing", "APIs", "Performance"],
       readTime: "10 min read",
-      views: "3.1k",
+      gradient: "from-primary via-secondary to-primary",
     },
-  ]
-
-  const stats = [
-    { icon: BookOpen, label: "Articles", value: "150+" },
-    { icon: Users, label: "Readers", value: "25k+" },
-    { icon: TrendingUp, label: "Growth", value: "40%" },
   ]
 
   if (!isClient) {
@@ -99,15 +101,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      {/* Hero Section */}
       <motion.section
-        className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted to-background"
+        className="relative h-screen flex items-center justify-center overflow-hidden"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* 3D Background */}
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 opacity-40">
           <Suspense
             fallback={
               <div className="flex items-center justify-center h-full">
@@ -119,77 +121,101 @@ export default function HomePage() {
           </Suspense>
         </div>
 
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/20 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                x: mousePosition.x * (i % 2 === 0 ? 50 : -50),
+                y: mousePosition.y * (i % 2 === 0 ? 30 : -30),
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <motion.div variants={itemVariants}>
-            <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors">
-              Welcome to the Future of Tech
+            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30 text-lg px-4 py-2">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Welcome to the Future
             </Badge>
           </motion.div>
 
           <motion.h1
-            className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight"
+            className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent"
             variants={itemVariants}
           >
             Tech Insights
           </motion.h1>
 
           <motion.p
-            className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto"
+            className="text-xl md:text-2xl text-muted-foreground mb-10 leading-relaxed max-w-3xl mx-auto"
             variants={itemVariants}
           >
-            Discover cutting-edge technology insights, development trends, and innovation stories that shape our digital
-            future.
+            Exploring the cutting edge of technology, development, and innovation. Join us on a journey through the
+            digital frontier where ideas become reality.
           </motion.p>
 
-          <motion.div className="mb-12 max-w-md mx-auto" variants={itemVariants}>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-card border-border focus:border-primary transition-colors"
-              />
-            </div>
-          </motion.div>
-
-          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-16" variants={itemVariants}>
+          <motion.div className="flex flex-col sm:flex-row gap-6 justify-center" variants={itemVariants}>
             <Button
               asChild
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-lg px-8 py-6"
             >
               <Link href="/blog">
-                Explore Articles <ArrowRight className="ml-2 h-4 w-4" />
+                <Rocket className="mr-2 h-5 w-5" />
+                Explore Articles
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button
               asChild
               variant="outline"
               size="lg"
-              className="border-border hover:bg-muted transition-colors bg-transparent"
+              className="border-primary/50 text-primary hover:bg-primary/10 text-lg px-8 py-6 bg-transparent"
             >
-              <Link href="/admin">Admin Dashboard</Link>
+              <Link href="/admin">
+                <Brain className="mr-2 h-5 w-5" />
+                Admin Dashboard
+              </Link>
             </Button>
-          </motion.div>
-
-          <motion.div className="grid grid-cols-3 gap-8 max-w-md mx-auto" variants={itemVariants}>
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <stat.icon className="h-6 w-6 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
           </motion.div>
         </div>
 
         <motion.div
           className="absolute top-20 left-10 text-primary"
           animate={{
-            y: [0, -20, 0],
-            rotate: [0, 5, 0],
+            y: [0, -30, 0],
+            rotate: [0, 10, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+          }}
+        >
+          <Code size={40} />
+        </motion.div>
+
+        <motion.div
+          className="absolute bottom-20 right-10 text-secondary"
+          animate={{
+            y: [0, 25, 0],
+            rotate: [0, -10, 0],
+            scale: [1, 1.2, 1],
           }}
           transition={{
             duration: 4,
@@ -197,27 +223,29 @@ export default function HomePage() {
             ease: "easeInOut",
           }}
         >
-          <Code size={32} />
+          <Zap size={36} />
         </motion.div>
 
         <motion.div
-          className="absolute bottom-20 right-10 text-secondary"
+          className="absolute top-1/2 right-20 text-primary/60"
           animate={{
-            y: [0, 20, 0],
-            rotate: [0, -5, 0],
+            x: [0, 20, 0],
+            y: [0, -15, 0],
+            rotate: [0, 15, 0],
           }}
           transition={{
-            duration: 3,
+            duration: 6,
             repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
         >
-          <Zap size={28} />
+          <Sparkles size={28} />
         </motion.div>
       </motion.section>
 
+      {/* Featured Posts Section */}
       <motion.section
-        className="py-24 px-4 bg-muted/30"
+        className="py-24 px-4"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -231,99 +259,68 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Featured Post */}
-            <motion.div className="lg:col-span-2" variants={itemVariants}>
-              <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 h-full group overflow-hidden">
-                <div className="aspect-[16/9] relative overflow-hidden">
-                  <img
-                    src={featuredPosts[0].image || "/placeholder.svg?height=400&width=800&query=tech blog featured"}
-                    alt={featuredPosts[0].title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                  <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">Featured</Badge>
-                </div>
-                <CardHeader className="pb-4">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {featuredPosts[0].tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredPosts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                variants={itemVariants}
+                whileHover={{ y: -10, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 h-full group overflow-hidden">
+                  <div className="aspect-video relative overflow-hidden">
+                    <img
+                      src={post.image || "/placeholder.svg?height=200&width=400&query=tech blog featured"}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-t ${post.gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-300`}
+                    />
+                  </div>
+                  <CardHeader>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} className="bg-primary/20 text-primary border-primary/30">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <CardTitle className="text-card-foreground group-hover:text-primary transition-colors text-xl">
+                      <Link href={`/blog/${post.id}`}>{post.title}</Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-6 line-clamp-3 leading-relaxed">{post.excerpt}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">{post.readTime}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="text-primary hover:text-primary/80 hover:bg-primary/10"
                       >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <CardTitle className="text-2xl text-foreground group-hover:text-primary transition-colors leading-tight">
-                    <Link href={`/blog/${featuredPosts[0].id}`}>{featuredPosts[0].title}</Link>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-6 text-lg leading-relaxed">{featuredPosts[0].excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{featuredPosts[0].readTime}</span>
-                      <span>{featuredPosts[0].views} views</span>
+                        <Link href={`/blog/${post.id}`}>
+                          Read More <ArrowRight className="ml-1 h-4 w-4" />
+                        </Link>
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary/80">
-                      <Link href={`/blog/${featuredPosts[0].id}`}>
-                        Read More <ArrowRight className="ml-1 h-3 w-3" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Side Posts */}
-            <div className="space-y-6">
-              {featuredPosts.slice(1).map((post, index) => (
-                <motion.div key={post.id} variants={itemVariants}>
-                  <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 group">
-                    <div className="flex gap-4 p-6">
-                      <div className="aspect-square w-24 relative overflow-hidden rounded-lg flex-shrink-0">
-                        <img
-                          src={post.image || "/placeholder.svg?height=100&width=100&query=tech blog"}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {post.tags.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
-                          <Link href={`/blog/${post.id}`}>{post.title}</Link>
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{post.readTime}</span>
-                          <span>•</span>
-                          <span>{post.views} views</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </motion.section>
 
       <motion.section
-        className="py-24 px-4"
+        className="py-24 px-4 bg-muted/50"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           <motion.h2 className="text-4xl font-bold text-foreground mb-16" variants={itemVariants}>
             Powered by Modern Technology
           </motion.h2>
@@ -333,7 +330,7 @@ export default function HomePage() {
               { icon: Globe, name: "Next.js", color: "text-foreground" },
               { icon: Code, name: "React", color: "text-primary" },
               { icon: Zap, name: "Supabase", color: "text-secondary" },
-              { icon: Cpu, name: "Three.js", color: "text-accent" },
+              { icon: Cpu, name: "Three.js", color: "text-primary" },
             ].map((tech, index) => (
               <motion.div
                 key={tech.name}
@@ -342,10 +339,12 @@ export default function HomePage() {
                 whileHover={{ scale: 1.1, y: -5 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="p-4 rounded-full bg-muted group-hover:bg-primary/10 transition-colors mb-4">
-                  <tech.icon className={`h-8 w-8 ${tech.color} group-hover:text-primary transition-colors`} />
+                <div className="p-4 rounded-full bg-card border border-border group-hover:border-primary/50 transition-all duration-300 mb-4">
+                  <tech.icon
+                    className={`h-12 w-12 ${tech.color} group-hover:scale-110 transition-transform duration-300`}
+                  />
                 </div>
-                <span className="text-foreground font-medium group-hover:text-primary transition-colors">
+                <span className="text-card-foreground font-semibold text-lg group-hover:text-primary transition-colors">
                   {tech.name}
                 </span>
               </motion.div>
