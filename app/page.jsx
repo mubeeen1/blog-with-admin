@@ -1,39 +1,30 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Canvas } from "@react-three/fiber"
-import { OrbitControls, Text3D, Center } from "@react-three/drei"
-import { Suspense, useRef } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Code, Zap, Globe, Cpu } from "lucide-react"
+import { ArrowRight, Code, Zap, Globe, Cpu, Loader2 } from "lucide-react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 
-// 3D Scene Component
-function Scene3D() {
-  const meshRef = useRef()
-
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <mesh ref={meshRef} position={[0, 0, 0]}>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="#00d4ff" wireframe />
-      </mesh>
-      <Center>
-        <Text3D font="/fonts/helvetiker_regular.typeface.json" size={0.5} height={0.1} position={[0, -2, 0]}>
-          TECH BLOG
-          <meshStandardMaterial color="#ff6b35" />
-        </Text3D>
-      </Center>
-      <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={2} />
-    </>
-  )
-}
+const Scene3D = dynamic(() => import("@/components/3d-scene"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+    </div>
+  ),
+})
 
 export default function HomePage() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -87,6 +78,14 @@ export default function HomePage() {
     },
   ]
 
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
@@ -98,11 +97,15 @@ export default function HomePage() {
       >
         {/* 3D Background */}
         <div className="absolute inset-0 opacity-30">
-          <Canvas camera={{ position: [0, 0, 5] }}>
-            <Suspense fallback={null}>
-              <Scene3D />
-            </Suspense>
-          </Canvas>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+              </div>
+            }
+          >
+            <Scene3D />
+          </Suspense>
         </div>
 
         {/* Hero Content */}
@@ -196,7 +199,7 @@ export default function HomePage() {
                 <Card className="bg-slate-800/50 border-slate-700 hover:border-cyan-500/50 transition-all duration-300 h-full">
                   <div className="aspect-video relative overflow-hidden rounded-t-lg">
                     <img
-                      src={post.image || "/placeholder.svg"}
+                      src={post.image || "/placeholder.svg?height=200&width=400&query=tech blog featured"}
                       alt={post.title}
                       className="w-full h-full object-cover"
                     />
