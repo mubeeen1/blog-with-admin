@@ -31,6 +31,7 @@ import {
   LogOut,
   Type,
   Loader2,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -193,6 +194,9 @@ export default function AdminDashboard() {
                 <Link href="/admin/fonts" className="text-slate-400 hover:text-white transition-colors">
                   Fonts
                 </Link>
+                <Link href="/admin/users" className="text-slate-400 hover:text-white transition-colors">
+                  Users
+                </Link>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -247,6 +251,15 @@ export default function AdminDashboard() {
             </Card>
           </Link>
 
+          <Link href="/admin/users">
+            <Card className="border-slate-700/40 hover:border-amber-500/20 transition-colors cursor-pointer bg-slate-800/50">
+              <CardContent className="p-6 text-center">
+                <Users className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                <p className="font-medium text-white">Manage Users</p>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Link href="/blog" target="_blank">
             <Card className="border-slate-700/40 hover:border-green-500/20 transition-colors cursor-pointer bg-slate-800/50">
               <CardContent className="p-6 text-center">
@@ -255,13 +268,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </Link>
-
-          <Card className="border-slate-700/40 hover:border-orange-500/20 transition-colors cursor-pointer bg-slate-800/50">
-            <CardContent className="p-6 text-center">
-              <BarChart3 className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-              <p className="font-medium text-white">Analytics</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Statistics Cards */}

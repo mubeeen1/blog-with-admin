@@ -261,4 +261,226 @@ INSERT INTO public.blog_posts (
   156,
   12,
   (SELECT id FROM auth.users LIMIT 1)
+),
+(
+  'Mastering React Server Components',
+  '<h2>Understanding React Server Components</h2>
+  <p>React Server Components represent a paradigm shift in how we think about React applications. They allow us to render components on the server, reducing bundle size and improving performance.</p>
+  
+  <h2>Key Benefits</h2>
+  <ul>
+  <li>Zero bundle size impact</li>
+  <li>Direct access to backend resources</li>
+  <li>Improved SEO and initial page load</li>
+  <li>Better security for sensitive operations</li>
+  </ul>
+  
+  <h2>Implementation Example</h2>
+  <pre><code>// Server Component
+  async function BlogPost({ id }) {
+    const post = await db.posts.findById(id)
+    
+    return (
+      &lt;article&gt;
+        &lt;h1&gt;{post.title}&lt;/h1&gt;
+        &lt;p&gt;{post.content}&lt;/p&gt;
+      &lt;/article&gt;
+    )
+  }</code></pre>
+  
+  <h2>Best Practices</h2>
+  <p>When working with Server Components, remember to keep client-side interactivity separate and use the "use client" directive appropriately.</p>',
+  'Deep dive into React Server Components and how they''re changing the landscape of React development.',
+  'mastering-react-server-components',
+  '/react-server-components.png',
+  'published',
+  true,
+  ARRAY['React', 'Server Components', 'Performance', 'Next.js'],
+  756,
+  54,
+  (SELECT id FROM auth.users LIMIT 1)
+),
+(
+  'CSS Grid vs Flexbox: When to Use Which',
+  '<h2>The Layout Battle: Grid vs Flexbox</h2>
+  <p>CSS Grid and Flexbox are both powerful layout systems, but they excel in different scenarios. Understanding when to use each can dramatically improve your CSS architecture.</p>
+  
+  <h2>Flexbox: One-Dimensional Layouts</h2>
+  <p>Flexbox is perfect for one-dimensional layouts - either rows or columns:</p>
+  
+  <pre><code>.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }</code></pre>
+  
+  <h2>CSS Grid: Two-Dimensional Layouts</h2>
+  <p>Grid excels at two-dimensional layouts with complex positioning:</p>
+  
+  <pre><code>.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }</code></pre>
+  
+  <h2>Decision Framework</h2>
+  <ul>
+  <li><strong>Use Flexbox for:</strong> Navigation bars, button groups, centering content</li>
+  <li><strong>Use Grid for:</strong> Page layouts, card grids, complex positioning</li>
+  </ul>
+  
+  <h2>Combining Both</h2>
+  <p>The most powerful approach is using Grid and Flexbox together - Grid for overall layout structure and Flexbox for component-level alignment.</p>',
+  'Learn the key differences between CSS Grid and Flexbox and master when to use each layout system.',
+  'css-grid-vs-flexbox-when-to-use',
+  '/css-layout-comparison.png',
+  'published',
+  false,
+  ARRAY['CSS', 'Grid', 'Flexbox', 'Layout'],
+  543,
+  38,
+  (SELECT id FROM auth.users LIMIT 1)
+),
+(
+  'Building Progressive Web Apps in 2024',
+  '<h2>The Evolution of Progressive Web Apps</h2>
+  <p>Progressive Web Apps (PWAs) have matured significantly, offering native-like experiences through web technologies. In 2024, PWAs are more capable and widely supported than ever before.</p>
+  
+  <h2>Core PWA Features</h2>
+  <p>Modern PWAs provide:</p>
+  <ul>
+  <li>Offline functionality with service workers</li>
+  <li>Push notifications</li>
+  <li>App-like installation experience</li>
+  <li>Background sync capabilities</li>
+  <li>Access to device APIs</li>
+  </ul>
+  
+  <h2>Service Worker Implementation</h2>
+  <pre><code>// Register service worker
+  if (''serviceWorker'' in navigator) {
+    navigator.serviceWorker.register(''/sw.js'')
+      .then(registration =&gt; {
+        console.log(''SW registered:'', registration)
+      })
+      .catch(error =&gt; {
+        console.log(''SW registration failed:'', error)
+      })
+  }</code></pre>
+  
+  <h2>Performance Benefits</h2>
+  <p>PWAs offer significant performance advantages through caching strategies, lazy loading, and optimized resource delivery.</p>
+  
+  <h2>Browser Support</h2>
+  <p>PWA features are now supported across all major browsers, making them a viable option for production applications.</p>',
+  'Explore the latest developments in Progressive Web Apps and learn how to build app-like experiences for the web.',
+  'building-progressive-web-apps-2024',
+  '/pwa-mobile-experience.png',
+  'published',
+  false,
+  ARRAY['PWA', 'Service Workers', 'Mobile', 'Performance'],
+  687,
+  49,
+  (SELECT id FROM auth.users LIMIT 1)
+),
+(
+  'Database Optimization Strategies for Modern Web Apps',
+  '<h2>Database Performance Fundamentals</h2>
+  <p>Database optimization is crucial for scalable web applications. Poor database performance can bottleneck even the most well-architected applications.</p>
+  
+  <h2>Indexing Strategies</h2>
+  <p>Proper indexing is the foundation of database performance:</p>
+  
+  <pre><code>-- Create composite index for common queries
+  CREATE INDEX idx_posts_status_created 
+  ON blog_posts(status, created_at DESC);
+  
+  -- Partial index for specific conditions
+  CREATE INDEX idx_published_posts 
+  ON blog_posts(created_at) 
+  WHERE status = ''published'';</code></pre>
+  
+  <h2>Query Optimization</h2>
+  <ul>
+  <li>Use EXPLAIN to analyze query plans</li>
+  <li>Avoid N+1 query problems</li>
+  <li>Implement proper pagination</li>
+  <li>Use database-specific optimizations</li>
+  </ul>
+  
+  <h2>Caching Layers</h2>
+  <p>Implement multiple caching layers:</p>
+  <ul>
+  <li>Application-level caching (Redis, Memcached)</li>
+  <li>Database query result caching</li>
+  <li>CDN for static content</li>
+  <li>Browser caching strategies</li>
+  </ul>
+  
+  <h2>Connection Pooling</h2>
+  <p>Manage database connections efficiently to handle concurrent users without overwhelming the database server.</p>
+  
+  <h2>Monitoring and Alerting</h2>
+  <p>Set up comprehensive monitoring to identify performance issues before they impact users.</p>',
+  'Learn essential database optimization techniques to ensure your web applications scale efficiently.',
+  'database-optimization-strategies-modern-web-apps',
+  '/database-performance-chart.png',
+  'published',
+  false,
+  ARRAY['Database', 'Performance', 'Optimization', 'Scaling'],
+  432,
+  29,
+  (SELECT id FROM auth.users LIMIT 1)
+),
+(
+  'Micro-Frontends: Architecture for Large-Scale Applications',
+  '<h2>Understanding Micro-Frontend Architecture</h2>
+  <p>Micro-frontends extend the microservices concept to frontend development, allowing large applications to be built and maintained by independent teams.</p>
+  
+  <h2>Key Benefits</h2>
+  <ul>
+  <li>Independent deployments</li>
+  <li>Technology diversity</li>
+  <li>Team autonomy</li>
+  <li>Incremental upgrades</li>
+  <li>Fault isolation</li>
+  </ul>
+  
+  <h2>Implementation Approaches</h2>
+  
+  <h3>1. Build-Time Integration</h3>
+  <p>Combine micro-frontends during the build process using tools like Webpack Module Federation.</p>
+  
+  <h3>2. Runtime Integration</h3>
+  <p>Load micro-frontends dynamically at runtime:</p>
+  
+  <pre><code>// Dynamic import of micro-frontend
+  const loadMicroFrontend = async (name) =&gt; {
+    const module = await import(`./micro-frontends/${name}`)
+    return module.default
+  }</code></pre>
+  
+  <h3>3. Server-Side Integration</h3>
+  <p>Compose micro-frontends on the server before sending to the client.</p>
+  
+  <h2>Challenges and Solutions</h2>
+  <ul>
+  <li><strong>Shared Dependencies:</strong> Use module federation or shared libraries</li>
+  <li><strong>Styling Conflicts:</strong> Implement CSS-in-JS or scoped styles</li>
+  <li><strong>Communication:</strong> Use event buses or shared state management</li>
+  <li><strong>Testing:</strong> Implement contract testing between micro-frontends</li>
+  </ul>
+  
+  <h2>When to Use Micro-Frontends</h2>
+  <p>Consider micro-frontends for large applications with multiple teams, complex domains, or when you need to gradually migrate from legacy systems.</p>',
+  'Explore micro-frontend architecture patterns and learn how to build scalable applications with independent, deployable frontend modules.',
+  'micro-frontends-architecture-large-scale-applications',
+  '/micro-frontend-architecture.png',
+  'draft',
+  false,
+  ARRAY['Architecture', 'Micro-Frontends', 'Scalability', 'Enterprise'],
+  298,
+  18,
+  (SELECT id FROM auth.users LIMIT 1)
 );

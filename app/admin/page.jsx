@@ -53,50 +53,6 @@ export default function AdminLogin() {
     }
   }
 
-  const handleSignUp = async () => {
-    if (!email || !password) {
-      setError("Please enter email and password")
-      return
-    }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const supabase = createClient()
-
-      // Sign up new user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/admin/dashboard`,
-        },
-      })
-
-      if (authError) throw authError
-
-      if (authData.user) {
-        // Create admin user record
-        const { error: adminError } = await supabase.from("admin_users").insert({
-          id: authData.user.id,
-          username: email.split("@")[0],
-          role: "admin",
-        })
-
-        if (adminError) {
-          console.error("Admin user creation error:", adminError)
-        }
-
-        setError("Account created! Please check your email to confirm your account.")
-      }
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
@@ -144,32 +100,20 @@ export default function AdminLogin() {
               </Alert>
             )}
 
-            <div className="space-y-2">
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
-                onClick={handleSignUp}
-                disabled={isLoading}
-              >
-                Create Admin Account
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
           </form>
         </CardContent>
       </Card>
