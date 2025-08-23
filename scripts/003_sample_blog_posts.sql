@@ -1,0 +1,1 @@
+-- Insert sample blog posts (will be inserted after admin user is created)

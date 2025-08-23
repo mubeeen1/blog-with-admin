@@ -1,0 +1,2 @@
+-- Insert default admin user (you'll need to sign up with admin@example.com first)
+-- This will be handled by the application after user signs up
