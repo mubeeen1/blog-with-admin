@@ -1,53 +1,37 @@
-import { createServerClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import connectDB from "@/lib/mongoose/client"
+import { AdminUser } from "@/lib/mongoose/models"
 
 export async function DELETE(request, { params }) {
   try {
-    const supabase = createServerClient()
+    await connectDB()
     const { id } = params
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
     // Check if user is admin
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 })
     }
 
     // Prevent self-deletion
-    if (id === user.id) {
+    if (id === adminUser._id.toString()) {
       return NextResponse.json({ success: false, error: "Cannot delete your own admin account" }, { status: 400 })
     }
 
     // Delete admin user record
-    const { error: deleteAdminError } = await supabase.from("admin_users").delete().eq("id", id)
+    const deletedUser = await AdminUser.findByIdAndDelete(id)
 
-    if (deleteAdminError) {
-      console.error("Error deleting admin user record:", deleteAdminError)
-      return NextResponse.json({ success: false, error: "Failed to delete admin user record" }, { status: 500 })
+    if (!deletedUser) {
+      return NextResponse.json({ success: false, error: "Admin user not found" }, { status: 404 })
     }
 
-    // Delete auth user
-    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id)
-
-    if (deleteAuthError) {
-      console.error("Error deleting auth user:", deleteAuthError)
-      // Note: Admin record is already deleted, but auth user deletion failed
-      return NextResponse.json({ success: false, error: "Failed to delete auth user" }, { status: 500 })
-    }
+    // TODO: Implement auth user deletion from your authentication system
+    // You would delete the user from your auth provider here
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,47 +1,41 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import connectDB from "@/lib/mongoose/client"
+import { BlogPost, CustomFont, AdminUser } from "@/lib/mongoose/models"
 
 export async function GET() {
   try {
-    const supabase = await createClient()
+    await connectDB()
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 })
-    }
-
-    // Check admin status
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    // Check if user is admin
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ error: "Admin access required", success: false }, { status: 403 })
     }
 
-    // Get statistics
-    const [{ count: totalPosts }, { count: publishedPosts }, { count: draftPosts }, { count: totalFonts }] =
-      await Promise.all([
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }),
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }).eq("status", "published"),
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }).eq("status", "draft"),
-        supabase.from("custom_fonts").select("*", { count: "exact", head: true }),
-      ])
+    // Get statistics using MongoDB aggregation
+    const [
+      totalPosts,
+      publishedPosts,
+      draftPosts,
+      totalFonts,
+      viewsData,
+      likesData
+    ] = await Promise.all([
+      BlogPost.countDocuments(),
+      BlogPost.countDocuments({ status: "published" }),
+      BlogPost.countDocuments({ status: "draft" }),
+      CustomFont.countDocuments(),
+      BlogPost.aggregate([{ $group: { _id: null, totalViews: { $sum: "$views" } } }]),
+      BlogPost.aggregate([{ $group: { _id: null, totalLikes: { $sum: "$likes" } } }])
+    ])
 
-    // Get total views
-    const { data: viewsData } = await supabase.from("blog_posts").select("views")
-    const totalViews = viewsData?.reduce((sum, post) => sum + (post.views || 0), 0) || 0
-
-    // Get total likes
-    const { data: likesData } = await supabase.from("blog_posts").select("likes")
-    const totalLikes = likesData?.reduce((sum, post) => sum + (post.likes || 0), 0) || 0
+    const totalViews = viewsData[0]?.totalViews || 0
+    const totalLikes = likesData[0]?.totalLikes || 0
 
     const stats = {
       totalPosts: totalPosts || 0,

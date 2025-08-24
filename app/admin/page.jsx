@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,64 +22,67 @@ export default function AdminLogin() {
     setError("")
 
     try {
-      const supabase = createClient()
-
-      // Sign in with Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Create basic auth credentials
+      const credentials = btoa(`${email}:${password}`)
+      
+      // Attempt to login via API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${credentials}`
+        }
       })
 
-      if (authError) throw authError
-
-      // Check if user is admin
-      const { data: adminUser, error: adminError } = await supabase
-        .from("admin_users")
-        .select("*")
-        .eq("id", authData.user.id)
-        .single()
-
-      if (adminError || !adminUser) {
-        await supabase.auth.signOut()
-        throw new Error("Access denied. Admin privileges required.")
+      if (!response.ok) {
+        throw new Error('Invalid credentials')
       }
+
+      const data = await response.json()
+      
+      // Set session cookie
+      document.cookie = `admin_session=${btoa(JSON.stringify({
+        email: data.email,
+        role: data.role,
+        timestamp: Date.now()
+      }))}; path=/; max-age=${24 * 60 * 60}` // 24 hours
 
       router.push("/admin/dashboard")
     } catch (err) {
-      setError(err.message)
+      setError(err.message || "Invalid credentials")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-card border-border">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-cyan-500/20">
-            <Shield className="h-6 w-6 text-cyan-400" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
+            <Shield className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Admin Access</CardTitle>
-          <CardDescription className="text-slate-400">Sign in to access the admin dashboard</CardDescription>
+          <CardTitle className="text-2xl font-bold text-foreground">Admin Access</CardTitle>
+          <CardDescription className="text-muted-foreground">Sign in to access the admin dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">
+              <Label htmlFor="email" className="text-foreground">
                 Email
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="mubeennasir117@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">
+              <Label htmlFor="password" className="text-foreground">
                 Password
               </Label>
               <Input
@@ -89,20 +91,20 @@ export default function AdminLogin() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                 required
               />
             </div>
 
             {error && (
-              <Alert className="bg-red-500/20 border-red-500/50">
-                <AlertDescription className="text-red-300">{error}</AlertDescription>
+              <Alert className="bg-destructive/20 border-destructive/50">
+                <AlertDescription className="text-destructive-foreground">{error}</AlertDescription>
               </Alert>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+              className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
               disabled={isLoading}
             >
               {isLoading ? (

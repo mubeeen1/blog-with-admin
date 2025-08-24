@@ -1,41 +1,26 @@
-import { createServerClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import connectDB from "@/lib/mongoose/client"
+import { AdminUser } from "@/lib/mongoose/models"
 
 export async function GET() {
   try {
-    const supabase = createServerClient()
+    await connectDB()
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
     // Check if user is admin
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 })
     }
 
     // Get all admin users
-    const { data: users, error } = await supabase
-      .from("admin_users")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching admin users:", error)
-      return NextResponse.json({ success: false, error: "Failed to fetch users" }, { status: 500 })
-    }
+    const users = await AdminUser.find()
+      .sort({ created_at: -1 })
+      .lean()
 
     return NextResponse.json({ success: true, users })
   } catch (error) {
@@ -46,68 +31,47 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const supabase = createServerClient()
+    await connectDB()
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
     // Check if user is admin
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 })
     }
 
-    const { email, password, username, role = "admin" } = await request.json()
+    const { username, role = "admin", auth_user_id } = await request.json()
 
-    if (!email || !password || !username) {
-      return NextResponse.json({ success: false, error: "Email, password, and username are required" }, { status: 400 })
+    if (!username || !auth_user_id) {
+      return NextResponse.json({ success: false, error: "Username and auth_user_id are required" }, { status: 400 })
     }
 
-    // Create auth user
-    const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    })
+    // Check if username already exists
+    const existingUser = await AdminUser.findOne({ username })
+    if (existingUser) {
+      return NextResponse.json({ success: false, error: "Username already exists" }, { status: 400 })
+    }
 
-    if (createError) {
-      console.error("Error creating auth user:", createError)
-      return NextResponse.json({ success: false, error: createError.message }, { status: 400 })
+    // Check if auth_user_id already exists
+    const existingAuthUser = await AdminUser.findOne({ auth_user_id })
+    if (existingAuthUser) {
+      return NextResponse.json({ success: false, error: "Auth user already has admin privileges" }, { status: 400 })
     }
 
     // Create admin user record
-    const { data: newAdminUser, error: adminCreateError } = await supabase
-      .from("admin_users")
-      .insert({
-        id: authData.user.id,
-        username,
-        role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single()
+    const newAdminUser = new AdminUser({
+      username,
+      role,
+      auth_user_id
+    })
 
-    if (adminCreateError) {
-      console.error("Error creating admin user record:", adminCreateError)
-      // Try to clean up the auth user if admin record creation failed
-      await supabase.auth.admin.deleteUser(authData.user.id)
-      return NextResponse.json({ success: false, error: "Failed to create admin user record" }, { status: 500 })
-    }
+    const savedUser = await newAdminUser.save()
 
-    return NextResponse.json({ success: true, user: newAdminUser })
+    return NextResponse.json({ success: true, user: savedUser })
   } catch (error) {
     console.error("Error in admin users POST:", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })

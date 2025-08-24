@@ -1,22 +1,23 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import connectDB from "@/lib/mongoose/client"
+import { BlogPost, AdminUser } from "@/lib/mongoose/models"
 
 export async function GET(request, { params }) {
   try {
-    const supabase = await createClient()
-    const { id } = await params
+    await connectDB()
+    const { id } = params
 
-    const { data: post, error } = await supabase.from("blog_posts").select("*").eq("id", id).single()
+    const post = await BlogPost.findById(id).populate('author_id', 'username').lean()
 
-    if (error) throw error
+    if (!post) {
+      return NextResponse.json({ error: "Post not found", success: false }, { status: 404 })
+    }
 
     // Increment view count
-    await supabase
-      .from("blog_posts")
-      .update({ views: post.views + 1 })
-      .eq("id", id)
+    post.views += 1
+    await post.save()
 
-    return NextResponse.json({ post: { ...post, views: post.views + 1 }, success: true })
+    return NextResponse.json({ post, success: true })
   } catch (error) {
     console.error("Error fetching post:", error)
     return NextResponse.json({ error: error.message, success: false }, { status: 500 })
@@ -25,51 +26,38 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const supabase = await createClient()
-    const { id } = await params
+    await connectDB()
+    const { id } = params
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 })
-    }
-
-    // Check admin status
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    // Check if user is admin
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ error: "Admin access required", success: false }, { status: 403 })
     }
 
     const body = await request.json()
     const { title, content, excerpt, slug, featured_image, status, featured, tags } = body
 
-    const { data: post, error } = await supabase
-      .from("blog_posts")
-      .update({
-        title,
-        content,
-        excerpt,
-        slug,
-        featured_image,
-        status,
-        featured,
-        tags,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single()
+    const post = await BlogPost.findByIdAndUpdate(id, {
+      title,
+      content,
+      excerpt,
+      slug,
+      featured_image,
+      status,
+      featured,
+      tags,
+      updated_at: new Date().toISOString(),
+    }, { new: true })
 
-    if (error) throw error
+    if (!post) {
+      return NextResponse.json({ error: "Post not found", success: false }, { status: 404 })
+    }
 
     return NextResponse.json({ post, success: true })
   } catch (error) {
@@ -80,33 +68,25 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const supabase = await createClient()
-    const { id } = await params
+    await connectDB()
+    const { id } = params
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 })
-    }
-
-    // Check admin status
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    // Check if user is admin
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ error: "Admin access required", success: false }, { status: 403 })
     }
 
-    const { error } = await supabase.from("blog_posts").delete().eq("id", id)
+    const post = await BlogPost.findByIdAndDelete(id)
 
-    if (error) throw error
+    if (!post) {
+      return NextResponse.json({ error: "Post not found", success: false }, { status: 404 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

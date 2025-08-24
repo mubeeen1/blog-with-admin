@@ -1,49 +1,33 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import connectDB from "@/lib/mongoose/client"
+import { CustomFont, AdminUser } from "@/lib/mongoose/models"
 
 export async function DELETE(request, { params }) {
   try {
-    const supabase = await createClient()
-    const { id } = await params
+    await connectDB()
+    const { id } = params
 
-    // Check if user is authenticated and is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    // TODO: Implement proper authentication
+    // For now, we'll use a placeholder for admin user ID
+    // You'll need to integrate with your authentication system
+    const adminUserId = "placeholder-admin-id" // Replace with actual auth user ID
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 })
-    }
-
-    // Check admin status
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-
-    if (adminError || !adminUser) {
+    // Check if user is admin
+    const adminUser = await AdminUser.findOne({ auth_user_id: adminUserId })
+    if (!adminUser) {
       return NextResponse.json({ error: "Admin access required", success: false }, { status: 403 })
     }
 
-    // Get font data first to delete file from storage
-    const { data: font, error: fetchError } = await supabase.from("custom_fonts").select("*").eq("id", id).single()
+    // Find and delete the font
+    const font = await CustomFont.findByIdAndDelete(id)
 
-    if (fetchError) throw fetchError
-
-    // Delete file from storage
-    const fileName = font.file_url.split("/").pop()
-    const { error: storageError } = await supabase.storage.from("fonts").remove([fileName])
-
-    if (storageError) {
-      console.error("Error deleting font file:", storageError)
+    if (!font) {
+      return NextResponse.json({ error: "Font not found", success: false }, { status: 404 })
     }
 
-    // Delete font record from database
-    const { error: deleteError } = await supabase.from("custom_fonts").delete().eq("id", id)
-
-    if (deleteError) throw deleteError
+    // TODO: Implement file deletion from your storage solution
+    // If you're using a storage service like AWS S3, Cloudinary, etc.
+    // you would delete the file here
 
     return NextResponse.json({ success: true })
   } catch (error) {
